@@ -3,7 +3,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void allocateArray(double **arr, int length) {
+struct node {
+	char element;
+	struct node* left;
+	struct node* rigth;
+};
+
+void allocateArray(double** arr, int length) {
 	int i;
 	for (i = 0; i <= length; i++)
 	{
@@ -11,7 +17,7 @@ void allocateArray(double **arr, int length) {
 	}
 }
 
-void allocateArrayInt(int **arr, int length) {
+void allocateArrayInt(int** arr, int length) {
 	int i;
 	for (i = 0; i <= length; i++)
 	{
@@ -39,15 +45,30 @@ void calculate(double** mainArray, double* keyArray, int** rootArray, int i, int
 	rootArray[i][j] = position;
 }
 
-void createPrintArray(int** rootArray, int** printArray, int left, int right, int size, int step) {
-	if (left < size && right < size && right >= 0 && left >= 0) {
-		if (rootArray[left][right] != -1) {
-			printArray[step][right] = rootArray[left][right];
-			createPrintArray(rootArray, printArray, rootArray[left][right] + 1, right, size, step + 1);
-			createPrintArray(rootArray, printArray, left, rootArray[left][right], size, step + 1);
-		}
-
+struct node* createPrintArray(int** rootArray, char* pKeyValue, int left, int right, int size) {
+	struct node* node = (struct node*)malloc(sizeof(struct node));
+	if (left < size && right < size && right >= 0 && left >= 0 && rootArray[left][right] != -1) {
+		node->element = pKeyValue[rootArray[left][right]];
+		node->left = createPrintArray(rootArray, pKeyValue, rootArray[left][right] + 1, right, size);
+		node->rigth = createPrintArray(rootArray, pKeyValue, left, rootArray[left][right], size);
 	}
+	else {
+		return NULL;
+	}
+	return node;
+}
+
+void print_tree(struct node* r, int l)
+{
+	int i;
+	if (!r) return;
+	print_tree(r->rigth, l + 1);
+	for (i = 0; i < l; ++i)
+		printf(" ");
+	printf("%c \n", r->element);
+	print_tree(r->left, l + 1);
+
+
 }
 
 int main() {
@@ -56,27 +77,20 @@ int main() {
 	printf("Eleman sayisini giriniz : ");
 	scanf("%d", &keyNumber);
 
-	double *pKey, **mainArray;
-	char *pKeyValue;
-	int **rootArray, **printArray, writedElement = 0;
+	double* pKey, ** mainArray;
+	char* pKeyValue;
+	int** rootArray, writedElement = 0;
 
 	pKey = (double*)malloc(keyNumber * sizeof(double));
 	pKeyValue = (char*)malloc(keyNumber * sizeof(char));
 	mainArray = (double**)calloc(keyNumber, sizeof(double*));
 	rootArray = (int**)calloc(keyNumber, sizeof(int*));
-	printArray = (int**)calloc(keyNumber, sizeof(int*));
 
 	allocateArray(mainArray, keyNumber);
 	allocateArrayInt(rootArray, keyNumber);
-	allocateArrayInt(printArray, keyNumber);
 	//stop initializing to variables.
 
 	//initialize to arrays
-	for (i = 0; i <= keyNumber; i++) {
-		for (j = 0; j <= keyNumber; j++) {
-			printArray[i][j] = -1;
-		}
-	}
 	for (i = 0; i <= keyNumber; i++) {
 		for (j = 0; j <= keyNumber; j++) {
 			rootArray[i][j] = -1;
@@ -89,7 +103,7 @@ int main() {
 		if (i < keyNumber) {
 			printf("\n%d elemani giriniz.", i);
 			scanf(" %c", &pKeyValue[i]);
-			printf("\n%d elemani için olasilik giriniz.", i);
+			printf("\n%d elemani icin olasilik giriniz.", i);
 			scanf("%lf", &pKey[i]);
 		}
 
@@ -106,20 +120,11 @@ int main() {
 		}
 	}
 
-	//creating array for print to screen
-	createPrintArray(rootArray, printArray, 0, keyNumber, keyNumber + 1, 0);
+	//creating struct for print to screen
+	struct node* node = createPrintArray(rootArray, pKeyValue, 0, keyNumber, keyNumber + 1);
 
 	//print to screen
 	printf("Toplam masraf:%lf\n", mainArray[0][keyNumber]);
-	for (i = 0; i <= keyNumber && writedElement <= keyNumber; i++) {
-		for (j = 0; j <= keyNumber; j++) {
-			if (printArray[i][j] != -1) {
-				printf("%c", pKeyValue[printArray[i][j]]);
-				writedElement++;
-			}
-		}
-		printf("\n");
-	}
-
+	print_tree(node, 0);
 	return 1;
 }
