@@ -67,8 +67,6 @@ void print_tree(struct node* r, int l)
 		printf(" ");
 	printf("%c \n", r->element);
 	print_tree(r->left, l + 1);
-
-
 }
 
 int main() {
